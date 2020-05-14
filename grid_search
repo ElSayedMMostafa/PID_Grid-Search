@@ -1,0 +1,36 @@
+%% Grid search
+
+%Specs
+max_overshoot=10;
+max_settling_time = 2.5;
+min_rising_time = 0.1;
+max_rising_time =0.2;
+
+%'Kp','Ki' and 'Kd' values to test
+Kp = linspace(1,1.8,10);
+Ki = linspace(1,1.5,10);
+Kd = linspace(0,0.8,10);
+k=0;
+for i = 1:length(Kp)
+ for j = 1:length(Ki)
+     for w=1:length(Kd)
+  gc = pid(Kp(i),Ki(j),Kd(w));
+  s  = feedback(gc*tf,1);
+  m = stepinfo(s).Overshoot;
+  st = stepinfo(s).SettlingTime;
+  rt = stepinfo(s).RiseTime;
+      k = k+1;
+      solution(k,:) = [Kp(i) Ki(j) Kd(w) m st rt];
+     end
+ end
+end
+
+%% Filter the resultant value to get ones that match the specifications
+k=0;
+for i=1:size(solution,1)
+ if solution(i,4)<=max_overshoot && solution(i,5)<=max_settling_time && solution(i,6)>=min_rising_time && solution(i,6)<=max_rising_time
+      k = k+1;
+      output(k,:) = solution(i,:);
+ end
+end
+
